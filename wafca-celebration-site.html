@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAFCA 選手応援サイト</title>
+    <style>
+        .dancing-image {
+    width: 120px;
+    height: auto;
+    margin-top: 1em;
+    animation: toraDance 1.5s infinite;
+}
+
+/* tora.png のダンスアニメーション */
+@keyframes toraDance {
+    0%, 100% {
+        transform: rotate(0deg) translateY(0);
+    }
+    25% {
+        transform: rotate(-10deg) translateY(-10px);
+    }
+    50% {
+        transform: rotate(10deg) translateY(5px);
+    }
+    75% {
+        transform: rotate(-5deg) translateY(-5px);
+    }
+}
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg,  #667eea 0%,  #667eea 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            color: #ff4c4c ;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+
+        /* トップページ - 選手一覧 */
+        .players-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+
+        .player-card {
+            background:  whitesmoke;
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            text-align: center;
+        }
+
+        .player-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(0,0,0,0.15);
+        }
+
+        .player-avatar {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3em;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+        }
+
+        .player-name {
+            font-size: 1.3em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: bold;
+        }
+
+        .status-victory {
+            background: #4ecdc4;
+            color: white;
+        }
+
+        .status-training {
+            background: #95a5a6;
+            color: white;
+        }
+
+        /* 選手個別ページ */
+        .player-detail {
+            display: none;
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .back-btn {
+            background: beige;
+            color: rgba(255, 0, 0, 0.505);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            font-size: 1em;
+        }
+
+        .back-btn:hover {
+            background: white;
+        }
+
+        .player-profile {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .profile-avatar {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 4em;
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+        }
+
+        .profile-info h2 {
+            font-size: 2em;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .celebrate-btn {
+            background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1.2em;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        }
+
+        .celebrate-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+        }
+
+        /* 勝利イベント画面 */
+        .celebration-screen {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: linear-gradient(135deg, white 0%, white 100%);
+            z-index: 1000;
+            overflow: hidden;
+        }
+
+        .dancing-character {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 8em;
+            animation: dance 2s infinite;
+        }
+
+        @keyframes dance {
+            0%, 100% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
+            25% { transform: translate(-50%, -50%) rotate(5deg) scale(1.1); }
+            50% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
+            75% { transform: translate(-50%, -50%) rotate(5deg) scale(1.1); }
+        }
+
+        .wheelchair {
+            position: absolute;
+            bottom: -20px;
+            right: -20px;
+            font-size: 2em;
+            animation: wheelSpin 1s linear infinite;
+        }
+
+        @keyframes wheelSpin {
+            0%, 100% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
+            25% { transform: translate(-50%, -50%) rotate(5deg) scale(1.1); }
+            50% { transform: translate(-50%, -50%) rotate(-5deg) scale(1); }
+            75% { transform: translate(-50%, -50%) rotate(5deg) scale(1.1); }
+        }
+
+        .music-note {
+            position: absolute;
+            font-size: 2em;
+            color: #ffd93d;
+            animation: bounce 2s infinite;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-30px); }
+        }
+
+        .thank-you-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 1.5em;
+            color: #333;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            opacity: 0;
+            animation: fadeIn 1s ease-in-out forwards;
+        }
+
+        @keyframes fadeIn {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+        }
+
+        .close-celebration {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            color: black;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 1em;
+        }
+
+        .confetti {
+        position: absolute;
+        animation: confettiFall 6s linear forwards;
+        pointer-events: none;
+        user-select: none;
+        font-weight: bold;
+        white-space: pre;
+        /* ↓ いらない背景とサイズは削除！ */
+        /* background: #ffd93d; */
+        /* width: 10px; */
+        /* height: 10px; */
+        }
+
+
+        @keyframes confettiFall {
+            0% { transform: translateY(-100vh) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(100vh) rotate(360deg); opacity: 0; }
+        }
+
+        .character-set {
+    display: flex;
+    flex-direction: row; /* ← 横並びに変更 */
+    align-items: center;
+    justify-content: center;
+    gap: 1em; /* 要素の間にスペース */
+    font-size: 9rem;
+}  
+
+.avatar {
+    margin: 0; /* 余白リセット（縦並び用だった） */
+}
+
+.wheelchair {
+    font-size: 9rem;
+}
+
+
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏆 WAFCA 選手応援サイト</h1>
+            <p></p>
+        </div>
+
+        <!-- トップページ - 選手一覧 -->
+        <div id="playersPage" class="players-grid">
+            <div class="player-card" onclick="showPlayerDetail(0)">
+                <div class="player-avatar">😃</div>
+                <div class="player-name">田中 太郎</div>
+                <span class="status-badge status-victory">勝利済み ✨</span>
+            </div>
+
+            <div class="player-card" onclick="showPlayerDetail(1)">
+                <div class="player-avatar">😘</div>
+                <div class="player-name">佐藤 花子</div>
+                <span class="status-badge status-training">練習中</span>
+            </div>
+
+            <div class="player-card" onclick="showPlayerDetail(2)">
+                <div class="player-avatar">😁</div>
+                <div class="player-name">山田 次郎</div>
+                <span class="status-badge status-victory">勝利済み ✨</span>
+            </div>
+
+            <div class="player-card" onclick="showPlayerDetail(3)">
+                <div class="player-avatar">😊</div>
+                <div class="player-name">鈴木 美咲</div>
+                <span class="status-badge status-training">練習中</span>
+            </div>
+        </div>
+
+        <!-- 選手個別ページ -->
+        <div id="playerDetail" class="player-detail">
+            <button class="back-btn" onclick="showPlayersPage()">← 選手一覧に戻る</button>
+            
+            <div class="player-profile">
+                <div class="profile-avatar" id="profileAvatar">🐱</div>
+                <div class="profile-info">
+                    <h2 id="playerName">田中 太郎</h2>
+                    <p id="playerBio">車いすテニスで活躍中！みんなの応援が力になります。</p>
+                    <div id="victorySection" class="hidden">
+                        <button class="celebrate-btn" onclick="startCelebration()">
+                            🎉 勝利をお祝いする！
+                        </button>
+                    </div>
+                    <div id="trainingSection" class="hidden">
+                        <p>
+                            <a href="https://ama01234.github.io/make066/" target="_blank">Wを作るサイト</a>で応援しよう！
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 勝利イベント画面 -->
+    <div id="celebrationScreen" class="celebration-screen">
+        <button class="close-celebration" onclick="closeCelebration()">× 閉じる</button>
+        
+        <div class="dancing-character" id="dancingCharacter">
+            🐱
+            <div class="wheelchair">♿</div>
+        </div>
+
+        <div id="thankYouMessage" class="thank-you-message hidden">
+            <h2>🙏 応援ありがとうございました</h2>
+            <p id="thankYouText">皆さんの応援のおかげで勝利することができました！<br>
+            本当にありがとうございます。<br>
+            これからも頑張ります！</p>
+            <p><strong id="messageAuthor">- 田中 太郎</strong></p>
+        </div>
+    </div>
+
+    <script>
+        const players = [
+            {
+                name: '田中 太郎',
+                avatar: '😃',
+                status: 'victory',
+                bio: '車いすテニスで活躍中！みんなの応援が力になります。',
+                thankYouMessage: '皆さんの応援のおかげで勝利することができました！\n本当にありがとうございます。\nこれからも頑張ります！'
+            },
+            {
+                name: '佐藤 花子',
+                avatar: '😘',
+                status: 'training',
+                bio: '車いすバスケットボール選手。次の試合に向けて特訓中です！',
+                thankYouMessage: 'いつも応援ありがとうございます！次は必ず勝利をお届けします！'
+                
+            },
+            {
+                name: '山田 次郎',
+                avatar: '😁',
+                status: 'victory',
+                bio: '車いす陸上競技で記録更新を目指しています。',
+                thankYouMessage: '新記録達成できました！皆さんの声援が背中を押してくれました。感謝です！'
+            },
+            {
+                name: '鈴木 美咲',
+                avatar: '😊',
+                status: 'training',
+                bio: '車いす卓球で世界を目指す！練習の成果を見せたいです。',
+                thankYouMessage: '応援してくださる皆さんがいるから頑張れます！ありがとうございます！'
+            }
+        ];
+
+        let currentPlayer = null;
+
+        function showPlayerDetail(playerIndex) {
+            currentPlayer = players[playerIndex];
+            
+            document.getElementById('playersPage').style.display = 'none';
+            document.getElementById('playerDetail').style.display = 'block';
+            
+            document.getElementById('profileAvatar').textContent = currentPlayer.avatar;
+            document.getElementById('playerName').textContent = currentPlayer.name;
+            document.getElementById('playerBio').textContent = currentPlayer.bio;
+            
+            const victorySection = document.getElementById('victorySection');
+            const trainingSection = document.getElementById('trainingSection');
+
+            if (currentPlayer.status === 'victory') {
+                victorySection.classList.remove('hidden');
+                trainingSection.classList.add('hidden');
+                } else if (currentPlayer.status === 'training') {
+                victorySection.classList.add('hidden');
+                trainingSection.classList.remove('hidden');
+                } else {
+                // その他の状態（例：休養中など）がある場合に備えて両方非表示に
+                victorySection.classList.add('hidden');
+                trainingSection.classList.add('hidden');
+}
+
+        }
+
+        function showPlayersPage() {
+            document.getElementById('playersPage').style.display = 'grid';
+            document.getElementById('playerDetail').style.display = 'none';
+        }
+
+        function startCelebration() {
+            const screen = document.getElementById('celebrationScreen');
+            screen.style.display = 'block';
+            
+            // 踊るキャラクター設定
+            document.getElementById('dancingCharacter').innerHTML = `
+  <div class="character-set">
+    <div class="avatar">${currentPlayer.avatar}</div>
+    <div class="wheelchair">🦽</div>
+    <img src="tora.png" class="dancing-image" alt="Tora" />
+  </div>
+`;
+
+            
+            // 音符アニメーション
+            createMusicNotes();
+            
+            // 紙吹雪
+            createConfetti();
+            
+            // 3秒後にありがとうメッセージ表示
+            setTimeout(() => {
+                document.getElementById('dancingCharacter').style.display = 'none';
+                document.getElementById('thankYouText').textContent = currentPlayer.thankYouMessage;
+                document.getElementById('messageAuthor').textContent = '- ' + currentPlayer.name;
+                document.getElementById('thankYouMessage').classList.remove('hidden');
+            }, 4000);
+        }
+
+        function createMusicNotes() {
+            const notes = ['♪', '♫', '♬', '♩'];
+            const screen = document.getElementById('celebrationScreen');
+            
+            for (let i = 0; i < 15; i++) {
+                setTimeout(() => {
+                    const note = document.createElement('div');
+                    note.className = 'music-note';
+                    note.textContent = notes[Math.floor(Math.random() * notes.length)];
+                    note.style.left = Math.random() * 100 + '%';
+                    note.style.top = Math.random() * 100 + '%';
+                    note.style.animationDelay = Math.random() * 2 + 's';
+                    screen.appendChild(note);
+                    
+                    setTimeout(() => {
+                        note.remove();
+                    }, 4000);
+                }, i * 200);
+            }
+        }
+
+        function createConfetti() {
+        const screen = document.getElementById('celebrationScreen');
+        const letters = ['W', 'A', 'F', 'C', 'A'];
+
+        for (let i = 0; i < 50; i++) {
+  const confetti = document.createElement('div');
+  confetti.className = 'confetti';
+  confetti.textContent = letters[Math.floor(Math.random() * letters.length)];
+  confetti.style.left = Math.random() * 100 + 'vw';
+  confetti.style.animationDuration = (Math.random() * 3 + 5) + 's'; // 5〜8秒
+  confetti.style.fontSize = (Math.random() * 1 + 1.5) + 'em';
+  confetti.style.color = ['#ff4081', '#42a5f5', '#66bb6a', '#ffca28', '#9b59b6'][Math.floor(Math.random() * 5)];
+
+  screen.appendChild(confetti);
+
+  // 自動で削除
+  setTimeout(() => confetti.remove(), 9000);
+}
+
+}
+
+
+        function closeCelebration() {
+            document.getElementById('celebrationScreen').style.display = 'none';
+            document.getElementById('dancingCharacter').style.display = 'block';
+            document.getElementById('thankYouMessage').classList.add('hidden');
+            
+            // 音符と紙吹雪をクリア
+            const notes = document.querySelectorAll('.music-note');
+            const confetti = document.querySelectorAll('.confetti');
+            notes.forEach(note => note.remove());
+            confetti.forEach(conf => conf.remove());
+        }
+    </script>
+
+    
+
+</body>
+</html>
